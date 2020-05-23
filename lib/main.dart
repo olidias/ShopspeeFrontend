@@ -25,6 +25,7 @@ class VoiceHome extends StatefulWidget {
 class _VoiceHomeState extends State<VoiceHome> {
   bool _isAvailable = false;
   bool _isListening = false;
+  bool _isAnalysing = false;
   FlutterSoundRecorder soundRecorder;
   FlutterSoundPlayer soundPlayer;
   String resultText = "";
@@ -143,8 +144,20 @@ class _VoiceHomeState extends State<VoiceHome> {
                   child: Icon(Icons.graphic_eq),
                   backgroundColor: Color.fromARGB(100, 152, 51, 82),
                   onPressed: () async {
+                    _isAnalysing = true;
+                    String textResult;
                     String outputPath = filePath.substring(0, filePath.lastIndexOf('/')) + '/output.wav';
-                    new FlutterFFmpeg().execute("-i $filePath $outputPath").whenComplete(() => resultText = retrieveRecognisedText(filePath));
+                    try {
+                      await new FlutterFFmpeg().execute("-i $filePath $outputPath");
+                      textResult = await retrieveRecognisedText(filePath);
+                      setState(() {
+                        resultText = textResult;
+                      });
+                    } catch(e) {
+                      print(e);
+                    } finally {
+                      _isAnalysing = false;
+                    }
                   },
                 ),
               ],

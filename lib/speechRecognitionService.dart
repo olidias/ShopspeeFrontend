@@ -1,18 +1,26 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 
-String retrieveRecognisedText(String filePath) async {
+Future<String> retrieveRecognisedText(String filePath) async {
   var bytes = await new File(filePath).readAsBytes();
-
-  String url = "http://40.114.215.137:8080/api/SpeechRecognition";
+  var encodedBytes = base64.encode(bytes);
+  Map map ={
+    'Data': encodedBytes
+  };
+  String url = "http://23.100.3.194/api/SpeechRecognition";
   Dio dio = new Dio();
+  print("Sending string to backend: $encodedBytes");
   var response = await dio.post(url,
-      data: bytes,
       options: Options(
         headers: {
-          Headers.contentLengthHeader: bytes.length, // set content-length
+          Headers.contentLengthHeader: encodedBytes.length, // set content-length
         },
-      ));
+        contentType: "application/json"
+      ),
+      data: map);
+
+  // var response = await dio.get(url);
   var text = response.data.toString();
   print("Got response from backend: $text");
   return text;
